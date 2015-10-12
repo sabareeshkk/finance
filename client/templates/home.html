@@ -1,0 +1,81 @@
+<template name="home">
+	<div class="row">
+		<div class="col-md-6 col-md-offset-3">
+			<form class="finance-form">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3>Yahoo Finance</h3>
+					</div>
+					<div class="panel-body">
+						<div class="form-group col-lg-12">
+							<label for="sel1">Select list:</label>
+							<select class="form-control" id="sel1" name="suku">
+								{{#each names}}
+								<option>{{name}}</option>
+								{{/each}}
+							</select>
+						</div>
+						<div class="form-group col-lg-6">
+							<label>Shares</label>
+							<input class="form-control floating-label" placeholder="number" type="number" id="number" min="0">
+						</div>
+						<div class="form-group col-lg-6">
+							<label>Current price</label>
+							<input class="form-control floating-label" placeholder="number" type="number" id="price" disabled>
+						</div>
+						<div class="form-group col-lg-6">
+							<label>Total Price</label>
+							<input class="form-control floating-label" placeholder="number" type="number" id="total" disabled>
+						</div>
+					</div>
+					<div class="panel-footer">
+						<button type="submit" class="btn btn-primary" id="finance">Submit</button>
+					</div>
+				</div>
+			</form>
+		</div>
+		<button id="refresh" class="btn btn-primary"> Refresh shares</button>
+		<div class="col-md-6 col-md-offset-3">
+			<div class="bs-example">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>Company</th>
+							<th>Share </th>
+							<th>Stock Price</th>
+							<th>Total</th>
+							<th>User</th>
+							<th>previous price</th>
+							<th>current total</th>
+							<th>current diff</th>
+							<th>CAGR(annual)</th>
+							<th>CAGR(monthly)</th>
+						</tr>
+					</thead>
+					<tbody>
+						{{#each share}}
+						{{> list}}
+						{{/each}}	 
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</template>
+
+<template name="list">
+	<tr class="listed">
+		<td>{{index}}</td>
+		<td>{{company}}</td>
+		<td>{{quantity}}</td>
+		<td>{{price}}</td>
+		<td>{{total}}</td>
+		<td>{{username}}</td>
+		<td>{{currentprice}}</td>
+		<td>{{currenttotal}}</td>
+		<td>{{currentdiff}}</td>
+		<td>--</td>
+		<td>{{monthly}}</td>
+	</tr>
+</template>
