@@ -71,3 +71,9 @@ Template.home.events({
         });
 	}
 });
+
+Shares.find().observe({
+    changed: function(user) {
+        console.log('helloo', user);
+    }
+});

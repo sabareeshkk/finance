@@ -1,21 +1,15 @@
 Meteor.methods({
-    'createNewList': function(companyname, number, price, total){
+    'createNewList': function(companyname, quantity, price, total){
         var currentUser = Meteor.userId();
         var createduser = Meteor.user().profile.username;
         console.log(currentUser);
-       /* var today = new Date();
-        var to = new Date();
-        today.setDate(today.getDate() -1); 
-        var yahoo = YahooFinance.historical({symbols: [companyname],
-                                            from: today.toISOString().slice(0, 10),
-                                            to: to.toISOString().slice(0, 10)});*/
         var yahoo = YahooFinance.snapshot({symbols: [companyname], fields:['s', 'n', 'd1', 'l1', 'y', 'r']});
         console.log(yahoo[companyname].lastTradePriceOnly);
-        var pretotal = parseFloat(yahoo[companyname].lastTradePriceOnly) * parseInt(number)
+        var pretotal = parseFloat(yahoo[companyname].lastTradePriceOnly) * parseInt(quantity)
         var prediff = parseFloat(pretotal.toFixed(2)) - parseFloat(total)
         return Shares.insert({created: new Date(), 
             company: companyname, 
-            quantity: parseInt(number), 
+            quantity: parseInt(quantity), 
             price: parseFloat(price), 
             total: parseFloat(total), 
             createdBy: currentUser, 
@@ -42,29 +36,7 @@ Meteor.methods({
         console.log(results);
         var currentUser = Meteor.userId();
         console.log('created', results.created);
-        var created  = results.created;
-        var date = new Date();
-        var a = moment(date);
-        var b = moment(created);
-        var diff = a.diff(b, 'years', true) //[days, years, months, seconds, ...]
-        //Result 1
-        console.log('sadsad', diff); 
-        if (diff >=1){
-           /*a = p(1+ r/100)^n*/
-           //
-           var a = results.currentprice / results.price;
-           var r = (Math.pow(a.toFixed(2), diff.toFixed(2)) * 100) - 100;
-           console.log('cagr annual', r); 
-           results.annual = r;
-        }
-        else {
-            var b = results.currentprice / results.price;
-            console.log('das', b);
-            var r = (Math.pow(b, diff * 12) * 1200) - 1200;
-            console.log('sadas', r);
-            console.log('cagr maonthly', r);
-            results.monthly = r;
-        }
+        results = datediff(results);
         return Shares.update({
                     createdBy: currentUser, 
                     quantity: results.quantity, 
@@ -92,8 +64,59 @@ Meteor.methods({
             created: created};
         return yahoo
     },
-    'generation':function (){
-        var currentUser = Meteor.userId();
+    'realtime': function(results){
+        console.log(results);
+        results = datediff(results);
+        return Shares.update({_id: results._id}, {$set: results});
     }
 });
 
+//finding the cagr value 
+function datediff(results){
+    var created  = results.created;
+        var date = new Date();
+        var a = moment(date);
+        var b = moment(created);
+        var diff = a.diff(b, 'years', true) //[days, years, months, seconds, ...]
+        console.log('sadsad', diff); 
+        if (diff >=1){
+           /*a = p(1+ r/100)^n*/
+           var a = results.currentprice / results.price;
+           var r = (Math.pow(a.toFixed(2), diff.toFixed(2)) * 100) - 100;
+           console.log('cagr annual', r); 
+           results.annual = r;
+        }
+        else {
+            var b = results.currentprice / results.price;
+            console.log('das', b);
+            var r = (Math.pow(b, diff * 12) * 1200) - 1200;
+            console.log('cagr monthly', r);
+            results.monthly = r;
+        }
+        return results;
+}
+
+/*function total_amount(){
+    var yahoo = YahooFinance.snapshot({symbols: [companyname], fields:['s', 'n', 'd1', 'l1', 'y', 'r']});
+    console.log(yahoo[companyname].lastTradePriceOnly);
+    var pretotal = parseFloat(yahoo[companyname].lastTradePriceOnly) * parseInt(quantity)
+    var prediff = parseFloat(pretotal.toFixed(2)) - parseFloat(total)
+}*/
+
+Meteor.setInterval(function(){
+    var sahre = Shares.find().fetch();
+    for (var i = 0; i < sahre.length; i++){
+        /*console.log(sahre[i].company);*/
+        Meteor.call('getPrice', sahre[i].company, function(err, res){
+        sahre[i].currentprice = res[sahre[i].company].lastTradePriceOnly;
+        sahre[i].currenttotal = (res[sahre[i].company].lastTradePriceOnly * sahre[i].quantity).toFixed(2);
+        sahre[i].currentdiff = (sahre[i].currenttotal - sahre[i].total).toFixed(2);
+        /*console.log('sahre', sahre[i]);*/
+        Meteor.call('realtime', sahre[i], function(err, res){
+            console.log('res', res);
+        });
+
+        });
+    }
+    
+}, 10000000);

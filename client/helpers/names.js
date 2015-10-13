@@ -16,22 +16,10 @@ Template.home.helpers({
         }
         console.log(share);
         return share;
-    },
-    /*'price': function(){
-    	return Company.find({});
-    },*/
-    /*'holder': function(){
-    	this.elephantDep.depend();
-        return this.elephant;
-    }*/
+    }
 });
 
 Template.list.helpers({
-
-	/*'price': function(){
-		console.log(Company.find({}));
-    	return Company.find({});
-    },*/
     'qwerty': function(){
     	return {AAPL:140, IBM: 120, YHOO: 100}
     }
